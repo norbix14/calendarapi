@@ -42,9 +42,9 @@ const createEvent = async (req, res) => {
 const updateEvent = async (req, res) => {
 	try {
 		const { uid: userId } = req
-		const { id } = req.params
+		const { id: eventId } = req.params
 
-		const event = await Event.findById(id)
+		const event = await Event.findById(eventId)
 
 		if(!event) {
 			return res.status(404).json({
@@ -62,11 +62,11 @@ const updateEvent = async (req, res) => {
 
 		const newEvent = {
 			...req.body,
-			user: uid
+			user: userId
 		}
 
 		const updatedEvent = await Event.findByIdAndUpdate(
-			id,
+			eventId,
 			newEvent,
 			{
 				new: true
@@ -90,9 +90,9 @@ const updateEvent = async (req, res) => {
 const deleteEvent = async (req, res) => {
 	try {
 		const { uid: userId } = req
-		const { id } = req.params
+		const { id: eventId } = req.params
 
-		const event = await Event.findById(id)
+		const event = await Event.findById(eventId)
 
 		if(!event) {
 			return res.status(404).json({
@@ -108,7 +108,7 @@ const deleteEvent = async (req, res) => {
 			})
 		}
 
-		await Event.findByIdAndDelete(id)
+		await Event.findByIdAndDelete(eventId)
 
 		return res.status(200).json({
 			ok: true,

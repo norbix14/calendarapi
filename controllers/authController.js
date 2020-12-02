@@ -1,21 +1,24 @@
 const User = require('../models/User')
-const bcrypt = require('bcryptjs')
-const { jwtGen } = require('../helpers/jwt')
+const {
+	encryptPassword,
+	comparePassword
+} = require('../helpers/encrypt')
+const { jwtGenerate } = require('../helpers/jwt')
 
 const login = async (req, res) => {
 	try {
 		const { email, password } = req.body
 
-		const user = User.findOne({ email })
+		const user = await User.findOne({ email })
 
 		if(!user) {
 			return res.status(400).json({
 				ok: false,
-				msg: 'Credenciales incorrectas. Revisa tus datos'
+				msg: 'Este email no pertenece a ninguna cuenta'
 			})
 		}
 
-		const validPass = bcrypt.compareSync(password, user.password)
+		const validPass = comparePassword(password, user.password)
 
 		if(!validPass) {
 			return res.status(400).json({
@@ -24,10 +27,11 @@ const login = async (req, res) => {
 			})
 		}
 
-		const token = await jwtGen(user.id, user.name)
+		const token = await jwtGenerate(user.id, user.name)
 
 		return res.status(200).json({
 			ok: true,
+			msg: 'Sesión iniciada',
 			token,
 			user: {
 				uid: user.id,
@@ -58,12 +62,11 @@ const newUser = async (req, res) => {
 
 		user = new User(req.body)
 
-		const salt = bcrypt.genSaltSync()
-		user.password = bcrypt.hashSync(password, salt)
+		user.password = encryptPassword(password)
 
 		await user.save()
 
-		const token = await jwtGen(user.id, user.name)
+		const token = await jwtGenerate(user.id, user.name)
 
 		return res.status(201).json({
 			ok: true,
@@ -78,7 +81,7 @@ const newUser = async (req, res) => {
 		console.log('Error al crear nuevo usuario')
 		return res.status(500).json({
 			ok: false,
-			msg: 'No se pudo crear el usuario'
+			msg: 'Ha ocurrido un error'
 		})
 	}
 }
@@ -87,11 +90,16 @@ const renewToken = async (req, res) => {
 	try {
 		const { uid, name } = req
 
-		const token = await jwtGen(uid, name)
+		const token = await jwtGenerate(uid, name)
 
 		return res.status(200).json({
 			ok: true,
-			token
+			msg: 'Token renovado',
+			token,
+			user: {
+				uid,
+				name
+			}
 		})
 	} catch(err) {
 		console.log('Error al renovar el token')

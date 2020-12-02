@@ -4,17 +4,18 @@ require('dotenv').config()
 const connectDB = async () => {
 	try {
 		await mongoose.connect(
-			process.env.MONGODB_COMPASS_CONNECTION,
+			process.env.MONGODB_URL_REMOTE,
 			{
 				useNewUrlParser: true,
 				useUnifiedTopology: true,
-				useCreateIndex: true
+				useCreateIndex: true,
+				useFindAndModify: false
 			}
 		)
-		console.log('BBDD conectada')
+		console.log('Conectado a MongoDB')
 	} catch(err) {
-		console.log('Error al conectar BBDD')
-		throw new Error('Error al conectar BBDD')
+		console.log('Error al conectar a MongoDB')
+		throw new Error('Error al conectar a MongoDB')
 	}
 }
 
